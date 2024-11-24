@@ -142,7 +142,7 @@ public class UserTest {
     @Test
     public void testReadDateFromUser_preDateException() {
         
-        Scanner scanner = new Scanner("Test Task\n2023-12-31");
+        Scanner scanner = new Scanner("Test Task\n2023-12-31\n");
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));

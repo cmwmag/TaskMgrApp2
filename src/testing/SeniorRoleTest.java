@@ -40,6 +40,20 @@ public class SeniorRoleTest {
         database.getInstance().getAllUsers().add(seniorUser);
         database.getInstance().getAllUsers().add(juniorUser);
     }
+    
+    @Test //InputMismatchException
+    public void testOperate_InputMismatchException() {
+    	ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+        
+        Scanner scanner = new Scanner("WrongInput\n0\n");
+        seniorRole.operate(seniorUser, scanner);
+        
+        System.setOut(originalOut); 
+        String expectedOutput = "Invalid input. Please enter a number.";
+        assertTrue(outContent.toString().contains(expectedOutput));
+    }
 
     @Test //Case 1 : Add a task
     public void testOperate1() {

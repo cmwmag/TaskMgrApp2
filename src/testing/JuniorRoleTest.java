@@ -5,9 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import role.JuniorRole;
-import role.SeniorRole;
 import task.Task;
-import task.TaskItem;
 import user.User;
 import database.database;
 
@@ -25,7 +23,6 @@ public class JuniorRoleTest {
     private JuniorRole juniorRole;
     private User juniorUser1;
     private User juniorUser2;
-    private User juniorUser3;
     private Task task;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -36,11 +33,24 @@ public class JuniorRoleTest {
         juniorRole = new JuniorRole();
         juniorUser1 = new User("Junior1", "J001", "password", "Junior", juniorRole);
         juniorUser2 = new User("Junior2", "J002", "password", "Junior", juniorRole);
-        juniorUser3 = new User("Junior3", "J003", "password", "Junior", juniorRole);
         task = new Task(1, "Test Task", targetDate, juniorUser1);
         database.getInstance().getAllUsers().clear();
         database.getInstance().getAllUsers().add(juniorUser1);
         database.getInstance().getAllUsers().add(juniorUser2);
+    }
+    
+    @Test //InputMismatchException
+    public void testOperate_InputMismatchException() {
+    	ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+        
+        Scanner scanner = new Scanner("WrongInput\n0\n");
+        juniorRole.operate(juniorUser1, scanner);
+        
+        System.setOut(originalOut); 
+        String expectedOutput = "Invalid input. Please enter a number.";
+        assertTrue(outContent.toString().contains(expectedOutput));
     }
 
     @Test //Case 1 : Add a task

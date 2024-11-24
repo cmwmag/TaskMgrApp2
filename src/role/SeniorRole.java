@@ -69,6 +69,7 @@ public class SeniorRole implements Role {
 						}
 	                    User taskCreator = userdb.getTaskManager().findTaskCreatorById(taskId);
 	                    PermissionException.poCheck(user0, taskCreator);
+						
 	                    assignTaskToUser(target, task);
 	                } catch (PermissionException e) {
 	                    System.out.println(e.getMessage());
@@ -89,10 +90,10 @@ public class SeniorRole implements Role {
         }
     }	
         
-	public void assignStaff(User newStaff) { // don't know where the function is called
+	/*public void assignStaff(User newStaff) { // don't know where the function is called
 			//assignedStaff.add(newStaff);
 	    	
-		}
+		}*/
     	
     	public User findUser(Scanner scanner) {
     		System.out.println("Please choose a Staff (choose by ID): ");

@@ -7,7 +7,6 @@ import java.util.Scanner;
 import database.database;
 import exception.PermissionException;
 import task.Task;
-import task.TaskManager;
 import user.User;
 
 public class AdminRole implements Role {
@@ -92,7 +91,7 @@ public class AdminRole implements Role {
     }	
         
     	public User findUser(Scanner scanner) {
-    		System.out.println("Please choozse a Staff (choose by ID): ");
+    		System.out.println("Please choose a Staff (choose by ID): ");
     		database db = database.getInstance();
     		db.displayAllUsers();
     		String userID = scanner.nextLine();

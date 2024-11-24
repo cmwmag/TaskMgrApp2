@@ -1,12 +1,9 @@
 package role;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import database.database;
-import task.Task;
-import task.TaskManager;
 import user.User;
 
 public class JuniorRole implements Role {
@@ -77,5 +74,5 @@ public class JuniorRole implements Role {
     			tasksList.add(task);
     	    }
     	    return tasksList;
-    	}*/
+    	}*/	
 }
