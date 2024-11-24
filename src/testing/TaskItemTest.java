@@ -33,7 +33,7 @@ public class TaskItemTest {
     public void testSetStatus2() {
         TaskItem item = new TaskItem("Test Content");
         item.setStatus(false);
-        assertTrue(item.getStatus());
+        assertFalse(item.getStatus());
     }
     
     @Test // test for getStatus when status is true
