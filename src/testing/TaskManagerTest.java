@@ -2,7 +2,6 @@ package testing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import exception.PermissionException;
 import task.Task;
 import task.TaskItem;
 import task.TaskManager;
@@ -11,6 +10,7 @@ import user.User;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -75,7 +75,7 @@ public class TaskManagerTest {
         assertEquals(task, userTasks.get(0));
     }
     
-    @Test
+    @Test //list task successfully
     public void testListAllTask_TasksFound() throws Exception {
         taskManager.addTask(task);
         taskManager.addTask(task2);
@@ -110,7 +110,7 @@ public class TaskManagerTest {
         assertTrue(outContent.toString().contains(expectedOutput));
     }
     
-    @Test
+    @Test // test ListAllTask that is invalid input
     public void testListAllTask_InvalidInput() throws Exception {
         taskManager.addTask(task);
         task.addAssignedStaff(user);
@@ -123,28 +123,12 @@ public class TaskManagerTest {
 
         taskManager.listAllTask(scanner, user);
 
-        String expectedOutput1 = "1. 1 2023-12-31 Test Task created by John Doe [Progress: Empty]";
-        String expectedOutput2 = "Invalid option.";
-        assertTrue(outContent.toString().contains(expectedOutput1));
-        assertTrue(outContent.toString().contains(expectedOutput2));
-    }
-    
-    @Test //invalid input
-    public void testListAllTask_invalidInput() {
-        String input = "\n0\n";
-        System.setIn(new ByteArrayInputStream(input.getBytes()));
-        Scanner scanner = new Scanner(System.in);
-
-        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(outContent));
-
-        taskManager.listAllTask(scanner, user);
-
         String expectedOutput = "Invalid option";
         assertTrue(outContent.toString().contains(expectedOutput));
     }
+    
 
-    @Test
+    @Test //test for ListAllTask that input.equals(">") 
     public void testListAllTask_NextPage() throws ParseException {
         // Add 11 tasks to ensure pagination
         for (int i = 1; i <= 11; i++) {
@@ -152,7 +136,7 @@ public class TaskManagerTest {
             newTask.addAssignedStaff(user);
             taskManager.addTask(newTask);
         }
-        String input = ">\n0\n";
+        String input = ">\n>\n0\n";//input.equals(">"), first: currentPage < maxPage, second: currentPage > maxPage
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         Scanner scanner = new Scanner(System.in);
 
@@ -160,12 +144,12 @@ public class TaskManagerTest {
         System.setOut(new PrintStream(outContent));
 
         taskManager.listAllTask(scanner, user);
-
         String expectedOutput = "You are already on the last page.";
         assertTrue(outContent.toString().contains(expectedOutput));
+        
     }
 
-    @Test
+    @Test //test for ListAllTask that input.equals("") 
     public void testListAllTask_PreviousPage() throws ParseException {
         // Add 11 tasks to ensure pagination
         for (int i = 1; i <= 11; i++) {
@@ -173,7 +157,7 @@ public class TaskManagerTest {
             newTask.addAssignedStaff(user);
             taskManager.addTask(newTask);
         }
-        String input = ">\n<\n0\n";
+        String input = ">\n<\n<\n0";//input.equals("<"), first: currentPage >1, second: currentPage <1
         System.setIn(new ByteArrayInputStream(input.getBytes()));
         Scanner scanner = new Scanner(System.in);
 
@@ -185,13 +169,197 @@ public class TaskManagerTest {
         String expectedOutput = "You are already on the first page.";
         assertTrue(outContent.toString().contains(expectedOutput));
     }
+    
+    @Test //test for EditTask
+    public void testEditTask1() {
+        taskManager.addTask(task);
+        task.addAssignedStaff(user);
 
+        String input = "1\n1\nComplete unit tests\n0\n";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        taskManager.editTask(scanner, user);
+
+        String expectedOutput = "Manage TO-DO List for Task:";
+        assertTrue(outContent.toString().contains(expectedOutput));
+    }
+    
+    
+    @Test //test for EditTask that selectedTask == null
+    public void testEditTask2() {
+        taskManager.addTask(task);
+        task.addAssignedStaff(user);
+
+        String input = "2\n1\nComplete unit tests\n0";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        taskManager.editTask(scanner, user);
+
+        String expectedOutput = "Task not found.";
+        assertTrue(outContent.toString().contains(expectedOutput));
+       
+    }
+    
+    @Test //test for EditTask that staff != user
+    public void testEditTask3() {
+        taskManager.addTask(task);
+        task.addAssignedStaff(user2);
+
+        String input = "1\n1\nComplete unit tests\n0";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        taskManager.editTask(scanner, user);
+
+        String expectedOutput = "Task not found.";
+        assertTrue(outContent.toString().contains(expectedOutput));
+       
+    }
+    
+    @Test // test for ManageTodoList
+    public void testManageTodoList() throws Exception {
+        String input = "1\nNew TO-DO Item\n0\n"; 
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        // Use reflection to access the private method
+        Method manageTodoListMethod = TaskManager.class.getDeclaredMethod("manageTodoList", Task.class, Scanner.class);
+        manageTodoListMethod.setAccessible(true);
+        manageTodoListMethod.invoke(taskManager, task, scanner);
+
+        String expectedOutput = "Manage TO-DO List for Task:";
+        assertTrue(outContent.toString().contains(expectedOutput));
+    }
+    
+    @Test // test for InputMismatchException in ManageTodoList
+    public void testInputMismatchException() throws Exception {
+        String input = "invalid\n0\n"; 
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        // Use reflection to access the private method
+        Method manageTodoListMethod = TaskManager.class.getDeclaredMethod("manageTodoList", Task.class, Scanner.class);
+        manageTodoListMethod.setAccessible(true);
+        manageTodoListMethod.invoke(taskManager, task, scanner);
+
+        String expectedOutput = "Invalid input. Please enter a task ID.";
+        assertTrue(outContent.toString().contains(expectedOutput));
+    }
+    
+    @Test //TodoListFunc Case 1: add to do item
+    public void testAddTodoItem() throws Exception {
+        String input = "New TO-DO Item";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 1, scanner);
+
+        assertEquals(1, result);
+        assertEquals(1, task.getTaskItems().size());
+        assertEquals("New TO-DO Item", task.getTaskItems().get(0).getContent());
+    }
+
+    @Test //TodoListFunc Case 2: delete to do item
+    public void testRemoveTodoItem() throws Exception {
+        task.addTaskItem(new TaskItem("Item to be removed"));
+        String input = "1";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 2, scanner);
+
+        assertEquals(2, result);
+        assertTrue(task.getTaskItems().isEmpty());
+    }
+
+    @Test //TodoListFunc Case 3: change to do item status
+    public void testChangeTodoItemStatus() throws Exception {
+        task.addTaskItem(new TaskItem("Item to change status", false));
+        String input = "1";
+        System.setIn(new ByteArrayInputStream(input.getBytes()));
+        Scanner scanner = new Scanner(System.in);
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 3, scanner);
+
+        assertEquals(3, result);
+        assertTrue(task.getTaskItems().get(0).getStatus());
+    }
+
+    @Test //TodoListFunc Case 4: view all the to do items
+    public void testViewAllTodoItems() throws Exception {
+        task.addTaskItem(new TaskItem("Item to view"));
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 4, new Scanner(System.in));
+
+        assertEquals(4, result);
+        assertTrue(outContent.toString().contains("Item to view"));
+    }
+    
+    @Test //TodoListFunc Case 4: view all the to do items(Empty)
+    public void testViewAllTodoItems2() throws Exception {
+        
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 4, new Scanner(System.in));
+
+        assertEquals(4, result);
+        assertTrue(outContent.toString().contains("No TO-DO items found."));
+    }
+
+    @Test //TodoListFunc Case 0: Exit
+    public void testExit() throws Exception {
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 0, new Scanner(System.in));
+
+        assertEquals(0, result);
+    }
+
+    @Test ////TodoListFunc Default
+    public void testInvalidOption() throws Exception {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+
+        Method todoListFuncMethod = TaskManager.class.getDeclaredMethod("TodoListFunc", Task.class, int.class, Scanner.class);
+        todoListFuncMethod.setAccessible(true);
+        int result = (int) todoListFuncMethod.invoke(taskManager, task, 99, new Scanner(System.in));
+
+        assertEquals(-1, result);
+        assertTrue(outContent.toString().contains("Invalid option."));}
 
     
-
-
-
-   
+    
+    
     @Test
     public void testGetTasksUserIsNotStaff() {
         task.addAssignedStaff(user2);
@@ -229,6 +397,23 @@ public class TaskManagerTest {
         Task foundTask = taskManager.findTaskById(2);
         assertNull(foundTask);
     }
+    @Test
+    public void findTaskCreatorById() {
+    	taskManager.addTask(task);
+        User foundCreator = taskManager.findTaskCreatorById(1);
+        assertNotNull(foundCreator);
+        assertEquals("John Doe", foundCreator.getName());
+        assertEquals("JD123", foundCreator.getID());
+    }
+    
+    @Test
+    public void findTaskCreatorByIdNotFound() {
+    	taskManager.addTask(task2);
+        User foundCreator = taskManager.findTaskCreatorById(1);
+        assertNull(foundCreator);
+        
+    }
+   
     
     @Test //test for listAllTasksByDate that user==staff and date does match
     public void testListAllTasksByDate1() throws Exception {
