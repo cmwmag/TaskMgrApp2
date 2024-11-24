@@ -57,7 +57,7 @@ public class JuniorRole implements Role {
         }
     }	
         
-    	public User findUser(Scanner scanner) {
+    	/*public User findUser(Scanner scanner) {
     		System.out.println("Please choose a Staff (choose by ID): ");
     		database db = database.getInstance();
     		db.displayAllUsers();
@@ -77,5 +77,5 @@ public class JuniorRole implements Role {
     			tasksList.add(task);
     	    }
     	    return tasksList;
-    	}	
+    	}*/
 }

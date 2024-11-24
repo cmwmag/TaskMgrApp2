@@ -3,7 +3,7 @@ package testing;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import role.ManagerRole;
+import role.SeniorRole;
 import task.Task;
 import task.TaskItem;
 import user.User;
@@ -19,10 +19,10 @@ import java.util.Scanner;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ManagerRoleTest {
-    private ManagerRole managerRole;
-    private User managerUser;
-    private User managerUser2;
+public class SeniorRoleTest {
+    private SeniorRole seniorRole;
+    private User seniorUser;
+    private User seniorUser2;
     private User juniorUser;
     private Task task;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -31,47 +31,47 @@ public class ManagerRoleTest {
     @BeforeEach
     public void setUp() throws ParseException {
     	Date targetDate = dateFormat.parse("2024-12-31");
-    	managerRole = new ManagerRole();
-    	managerUser = new User("Manager", "M001", "password", "Admin", managerRole);
-    	managerUser2 = new User("Manager2", "M002", "password", "Admin", managerRole);
+        seniorRole = new SeniorRole();
+        seniorUser = new User("Senior", "S001", "password", "Senior", seniorRole);
+        seniorUser2 = new User("Senior2", "S002", "password", "Senior", seniorRole);
         juniorUser = new User("Junior", "J001", "password", "Junior", new role.JuniorRole());
-        task = new Task(1, "Test Task", targetDate, managerUser);
+        task = new Task(1, "Test Task", targetDate, seniorUser);
         database.getInstance().getAllUsers().clear();
-        database.getInstance().getAllUsers().add(managerUser);
+        database.getInstance().getAllUsers().add(seniorUser);
         database.getInstance().getAllUsers().add(juniorUser);
     }
 
     @Test //Case 1 : Add a task
     public void testOperate1() {
         Scanner scanner = new Scanner("1\nTest Task\n2024-12-31\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
-        assertEquals(1, managerUser.getTaskManager().getSize());
+        assertEquals(1, seniorUser.getTaskManager().getSize());
     }
 
     @Test //Case 2 :  List all tasks 
     public void testOperate2() {
-    	managerUser.getTaskManager().addTask(task);
-        task.addAssignedStaff(managerUser); //search user is assigned to the task
+    	seniorUser.getTaskManager().addTask(task);
+        task.addAssignedStaff(seniorUser); //search user is assigned to the task
         
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
         Scanner scanner = new Scanner("2\n0\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
-        assertEquals(1, managerUser.getTaskManager().getSize());
+        assertEquals(1, seniorUser.getTaskManager().getSize());
 
         System.setOut(originalOut); 
-        String expectedOutput = "1 2024-12-31 Test Task created by Manager [Progress: Empty]";
+        String expectedOutput = "1 2024-12-31 Test Task created by Senior [Progress: Empty]";
         assertTrue(outContent.toString().contains(expectedOutput));
     }
     
     @Test //Case 3: List all tasks by date
     public void testOperate3() throws ParseException {
-    	managerUser.getTaskManager().addTask(task);
-        task.addAssignedStaff(managerUser); //search user is assigned to the task
+    	seniorUser.getTaskManager().addTask(task);
+        task.addAssignedStaff(seniorUser); //search user is assigned to the task
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
@@ -79,17 +79,17 @@ public class ManagerRoleTest {
         
 
         Scanner scanner = new Scanner("3\n2024-12-31\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
         
         System.setOut(originalOut); 
-        String expectedOutput = "1 2024-12-31 Test Task created by Manager [Progress: Empty]";
+        String expectedOutput = "1 2024-12-31 Test Task created by Senior [Progress: Empty]";
         assertTrue(outContent.toString().contains(expectedOutput));
     }
 
     @Test //Case 4: Edit Task
     public void testOperate4() {
-    	managerUser.getTaskManager().addTask(task);
-        task.addAssignedStaff(managerUser);
+    	seniorUser.getTaskManager().addTask(task);
+        task.addAssignedStaff(seniorUser);
         
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         System.setOut(new PrintStream(outContent));
@@ -97,10 +97,10 @@ public class ManagerRoleTest {
 
         
         Scanner scanner = new Scanner("4\n1\n1\nNew Task Item\n0\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
         
         System.setOut(originalOut);
-        Task editedTask = managerUser.getTaskManager().findTaskById(1);
+        Task editedTask = seniorUser.getTaskManager().findTaskById(1);
         assertEquals(1, editedTask.getTaskItems().size());
         assertEquals("New Task Item", editedTask.getTaskItems().get(0).getContent());
         
@@ -111,8 +111,8 @@ public class ManagerRoleTest {
     @Test //Case 5: Delete Task
     public void testOperate5() {
         
-    	managerUser.getTaskManager().addTask(task);
-        task.addAssignedStaff(managerUser);
+    	seniorUser.getTaskManager().addTask(task);
+        task.addAssignedStaff(seniorUser);
 
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -120,32 +120,32 @@ public class ManagerRoleTest {
         
 
         Scanner scanner = new Scanner("5\n1\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
-        assertEquals(0, managerUser.getTaskManager().getTasks(managerUser).size());
+        assertEquals(0, seniorUser.getTaskManager().getTasks(seniorUser).size());
         
     }
 
     @Test // Case 6: Assign Task that target user !=null
     public void testOperate6() {
-    	managerUser.getTaskManager().addTask(task);
+    	seniorUser.getTaskManager().addTask(task);
 
         Scanner scanner = new Scanner("6\nJ001\n1\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
         assertEquals(1, juniorUser.getTaskManager().getSize());
     }
     
     @Test // Case 6: Assign Task that target user == null
     public void testOperate6_nullTarget() {
-    	managerUser.getTaskManager().addTask(task);
+    	seniorUser.getTaskManager().addTask(task);
         
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
         Scanner scanner = new Scanner("6\ninvalidUser\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
         System.setOut(originalOut); 
         String expectedOutput = "User not found.";
@@ -154,15 +154,14 @@ public class ManagerRoleTest {
     
     @Test // Case 6: Assign Task that task == null
     public void testOperate6_taskNotFound() {
-    	managerUser.getTaskManager().addTask(task);
+    	seniorUser.getTaskManager().addTask(task);
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
-        // Simulate user input for assigning a task with a non-existent task ID
         Scanner scanner = new Scanner("6\nJ001\n999\n0\n"); // 999 is an invalid task ID
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
         System.setOut(originalOut); 
         String expectedOutput = "Task not found.";
@@ -171,15 +170,15 @@ public class ManagerRoleTest {
     
     @Test // Case 6: Assign Task that PermissionException is caught
     public void testOperate_PermissionException() {
-    	managerUser.getTaskManager().addTask(task);
+    	seniorUser.getTaskManager().addTask(task);
 
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream originalOut = System.out;
         System.setOut(new PrintStream(outContent));
 
       
-        Scanner scanner = new Scanner("6\nM001\n0\n"); // cannot assign a task created by another user with the same or higher level
-        managerRole.operate(managerUser2, scanner);
+        Scanner scanner = new Scanner("6\nS001\n0\n"); // cannot assign a task created by another user with the same or higher level
+        seniorRole.operate(seniorUser2, scanner);
        
         System.setOut(originalOut);
 
@@ -194,7 +193,7 @@ public class ManagerRoleTest {
         task.addTaskItem(new TaskItem("Item 1", true)); // Completed item
         task.addTaskItem(new TaskItem("Item 2", false)); // Incomplete item
 
-        managerUser.getTaskManager().addTask(task);
+        seniorUser.getTaskManager().addTask(task);
         task.addAssignedStaff(juniorUser);
         
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
@@ -202,10 +201,10 @@ public class ManagerRoleTest {
         PrintStream originalOut = System.out;
 
         Scanner scanner = new Scanner("7\nJ001\n0\n");
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
         
         System.setOut(originalOut);
-        String expectedOutput = "1 2024-12-31 Test Task created by Manager [Progress: 50%]";
+        String expectedOutput = "1 2024-12-31 Test Task created by Senior [Progress: 50%]";
         assertTrue(outContent.toString().contains(expectedOutput));
         System.setOut(originalOut);
     }
@@ -216,7 +215,7 @@ public class ManagerRoleTest {
         System.setOut(new PrintStream(outContent));
 
         Scanner scanner = new Scanner("100\n0\n"); //  invalid option
-        managerRole.operate(managerUser, scanner);
+        seniorRole.operate(seniorUser, scanner);
 
         System.setOut(originalOut); // Reset the standard output before assertion
         String expectedOutput = "Invalid option";
